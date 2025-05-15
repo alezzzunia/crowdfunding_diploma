@@ -1,0 +1,132 @@
+﻿{% extends "app/layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow mb-5">
+                <div class="card-header bg-success text-white">
+                    <h4 class="m-0"><i class="fas fa-donate me-2"></i>Підтримка проекту</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Проект: {{ project.title }}</h5>
+                        <p class="text-muted">Автор: {{ project.author.get_full_name|default:project.author.username }}</p>
+
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: {{ project.progress_percentage }}%;"
+                                 aria-valuenow="{{ project.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ project.progress_percentage }}%
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <strong>{{ project.current_amount }} грн</strong>
+                                <div class="text-muted small">зібрано</div>
+                            </div>
+                            <div class="text-end">
+                                <strong>{{ project.goal_amount }} грн</strong>
+                                <div class="text-muted small">ціль</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <form method="post" action="{% url 'make_donation' project_id=project.id %}">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="id_amount" class="form-label">Сума донату (грн)</label>
+                            {{ donation_form.amount }}
+                            <div class="form-text">Мінімальна сума донату - 1 грн.</div>
+                            {% if donation_form.amount.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ donation_form.amount.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_comment" class="form-label">Коментар (необов'язково)</label>
+                            {{ donation_form.comment }}
+                            <div class="form-text">Ви можете залишити коментар автору проекту.</div>
+                            {% if donation_form.comment.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ donation_form.comment.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-heart me-2"></i>Підтримати проект
+                            </button>
+                            <a href="{% url 'project_detail' project_id=project.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Повернутися до проекту
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Після підтвердження донату, ви отримаєте доступ до чату проекту, де зможете спілкуватися з автором та іншими донаторами.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Анімуємо прогрес-бар
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            const value = progressBar.getAttribute('aria-valuenow');
+            progressBar.style.width = '0%';
+
+            setTimeout(function() {
+                progressBar.style.width = value + '%';
+                progressBar.style.transition = 'width 1s ease';
+            }, 300);
+        }
+
+        // Валідація форми
+        const form = document.querySelector('form');
+        const amountInput = document.getElementById('id_amount');
+
+        form.addEventListener('submit', function(e) {
+            if (amountInput.value <= 0) {
+                e.preventDefault();
+                amountInput.classList.add('is-invalid');
+
+                // Створюємо повідомлення про помилку
+                let errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                errorDiv.innerText = 'Сума донату повинна бути більше 0';
+
+                // Додаємо повідомлення після поля вводу
+                amountInput.parentNode.appendChild(errorDiv);
+            }
+        });
+
+        // Прибираємо помилку при вводі
+        amountInput.addEventListener('input', function() {
+            if (amountInput.value > 0) {
+                amountInput.classList.remove('is-invalid');
+
+                // Видаляємо повідомлення про помилку, якщо воно є
+                const errorDiv = amountInput.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

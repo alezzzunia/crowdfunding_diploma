@@ -1,0 +1,43 @@
+﻿<!-- app/templates/app/loginpartial.html -->
+<ul class="navbar-nav">
+    {% if user.is_authenticated %}
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {% if user.profile_image %}
+            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="30" height="30">
+            {% else %}
+            <i class="fas fa-user-circle me-2"></i>
+            {% endif %}
+            <span>{{ user.username }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="min-width: 200px; border-radius: 8px; border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);">
+            <li class="px-3 py-2 d-flex align-items-center border-bottom">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                    {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="rounded-circle" width="100%" height="100%">
+                    {% else %}
+                    <i class="fas fa-user text-secondary"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="small text-muted">{{ user.email }}</div>
+                </div>
+            </li>
+            <li><a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-id-card me-2"></i>Мій профіль</a></li>
+            {% if user.is_author %}
+            <li><a class="dropdown-item py-2" href="{% url 'project_create' %}"><i class="fas fa-plus-circle me-2"></i>Створити проект</a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Вийти</a></li>
+        </ul>
+    </li>
+    {% else %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-1"></i>Увійти</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'register' %}"><i class="fas fa-user-plus me-1"></i>Реєстрація</a>
+    </li>
+    {% endif %}
+</ul>

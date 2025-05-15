@@ -1,0 +1,74 @@
+﻿<!-- app/templates/app/chat/messages.html -->
+{% extends "app/layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="m-0"><i class="fas fa-comments me-2"></i>Чат проекту: {{ project.title }}</h3>
+                    <a href="{% url 'project_detail' project_id=project.id %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Повернутися до проекту
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container" style="height: 400px; overflow-y: auto; margin-bottom: 15px;">
+                        {% for message in messages_list %}
+                        <div class="message mb-3 {% if message.sender == user %}text-end{% endif %}">
+                            <div class="d-inline-block {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded">
+                                {% if message.sender != user %}
+                                <div class="fw-bold mb-1">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+                                {% endif %}
+                                <div class="message-text">{{ message.message|linebreaks }}</div>
+                                <div class="text-muted {% if message.sender == user %}text-white-50{% endif %} small">
+                                    {{ message.created_at|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Поки що немає повідомлень. Розпочніть обговорення!
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <form method="post" action="{% url 'project_chat' project_id=project.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ chat_form.message }}
+                            {% if chat_form.message.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ chat_form.message.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Надіслати
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    {% if is_author %}
+                    <p class="m-0"><i class="fas fa-info-circle me-1"></i>Ви є автором цього проекту і можете спілкуватися з інвесторами.</p>
+                    {% else %}
+                    <p class="m-0"><i class="fas fa-info-circle me-1"></i>Ви підтримали цей проект і можете спілкуватися з автором.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Прокрутка чату вниз при завантаженні сторінки
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+</script>
+{% endblock %}

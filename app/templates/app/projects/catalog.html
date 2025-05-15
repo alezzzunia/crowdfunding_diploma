@@ -1,0 +1,203 @@
+﻿{% extends "app/layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-list me-2"></i>Каталог проектів</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Фільтри та пошук -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="m-0"><i class="fas fa-filter me-1"></i>Фільтри</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'project_catalog' %}">
+                        <!-- Пошук -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Пошук</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="search" name="search" value="{{ search_query }}" placeholder="Назва або опис...">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Фільтр за статусом -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Статус</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="" {% if not status_filter %}selected{% endif %}>Всі статуси</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Активні</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Завершені</option>
+                                <option value="canceled" {% if status_filter == 'canceled' %}selected{% endif %}>Скасовані</option>
+                            </select>
+                        </div>
+
+                        <!-- Фільтр за категорією -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Категорія</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="" {% if not category_filter %}selected{% endif %}>Всі категорії</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Сортування -->
+                        <div class="mb-3">
+                            <label for="sort_by" class="form-label">Сортування</label>
+                            <select class="form-select" id="sort_by" name="sort_by">
+                                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Найновіші</option>
+                                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Найстаріші</option>
+                                <option value="-current_amount" {% if sort_by == '-current_amount' %}selected{% endif %}>За сумою (спадання)</option>
+                                <option value="current_amount" {% if sort_by == 'current_amount' %}selected{% endif %}>За сумою (зростання)</option>
+                                <option value="title" {% if sort_by == 'title' %}selected{% endif %}>За назвою (А-Я)</option>
+                                <option value="-title" {% if sort_by == '-title' %}selected{% endif %}>За назвою (Я-А)</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Застосувати
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список проектів -->
+        <div class="col-md-9">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <span class="text-muted">Знайдено проектів: {{ page_obj.paginator.count }}</span>
+                    </div>
+                    {% if user.is_authenticated and user.is_author %}
+                    <a href="{% url 'project_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus-circle me-1"></i>Створити проект
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                {% for project in page_obj %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if project.media.filter.first %}
+                        {% if project.media.filter.first.url %}
+                        <img src="{{ project.media.filter.first.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-secondary"></i>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-secondary"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge {% if project.status == 'active' %}bg-success{% elif project.status == 'completed' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ project.get_status_display }}
+                                </span>
+                                <small class="text-muted">{{ project.category }}</small>
+                            </div>
+
+                            <h5 class="card-title">{{ project.title }}</h5>
+                            <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+
+                            <div class="progress mb-3">
+                                <div class="progress-bar" role="progressbar" style="width: {{ project.progress_percentage }}%;"
+                                     aria-valuenow="{{ project.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ project.progress_percentage }}%
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <small>Зібрано: {{ project.current_amount }} грн</small>
+                                <small>Ціль: {{ project.goal_amount }} грн</small>
+                            </div>
+
+                            <div class="text-muted small mb-2">
+                                <i class="fas fa-user me-1"></i>{{ project.author.get_full_name|default:project.author.username }}
+                                <br>
+                                <i class="fas fa-calendar me-1"></i>Дедлайн: {{ project.deadline|date:"d.m.Y" }}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-grid">
+                                <a href="{% url 'project_detail' project_id=project.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-info-circle me-1"></i>Детальніше
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>За вашим запитом проектів не знайдено.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагінація -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Project pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+﻿/* app/static/app/content/styles.css */
+
+/* Основні кольори з палітри на другому зображенні */
+:root {
+    --storm-gray: #505160;
+    --waterfall-blue: #68829E;
+    --moss-green: #AEBD38;
+    --meadow-green: #598234;
+    --light-gray: #f8f9fa;
+}
+
+body {
+    padding-top: 0;
+    padding-bottom: 20px;
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-gray);
+    color: #333;
+}
+
+/* Навігаційна панель */
+.navbar-custom {
+    background-color: var(--storm-gray);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Кнопки */
+.btn-primary {
+    background-color: var(--waterfall-blue);
+    border-color: var(--waterfall-blue);
+}
+
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: #5a7085;
+        border-color: #5a7085;
+    }
+
+.btn-success {
+    background-color: var(--meadow-green);
+    border-color: var(--meadow-green);
+}
+
+    .btn-success:hover, .btn-success:focus {
+        background-color: #4a6c2a;
+        border-color: #4a6c2a;
+    }
+
+/* Картки проектів */
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+.card-header {
+    background-color: var(--waterfall-blue);
+    color: white;
+    font-weight: 600;
+}
+
+/* Прогрес-бар */
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: var(--moss-green);
+}
+
+/* Фон з паралаксом */
+.parallax-background {
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 300px;
+    position: relative;
+}
+
+/* Відступи та поля форм */
+.form-control:focus {
+    border-color: var(--waterfall-blue);
+    box-shadow: 0 0 0 0.2rem rgba(104, 130, 158, 0.25);
+}
+
+/* Чат */
+.chat-container {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.message .bg-primary {
+    background-color: var(--waterfall-blue) !important;
+}
+
+/* Пагінація */
+.pagination .page-item.active .page-link {
+    background-color: var(--waterfall-blue);
+    border-color: var(--waterfall-blue);
+}
+
+.pagination .page-link {
+    color: var(--waterfall-blue);
+}
+
+    .pagination .page-link:hover {
+        color: #5a7085;
+    }
+
+/* Медіа-контейнер */
+.media-item {
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+    .media-item:hover {
+        background-color: #f8f9fa;
+    }
+
+/* Адаптивність для мобільних пристроїв */
+@media (max-width: 768px) {
+    .parallax-background {
+        min-height: 200px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+}

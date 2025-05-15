@@ -1,0 +1,200 @@
+﻿<!-- app/templates/app/projects/create.html -->
+{% extends "app/layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h2 class="text-center"><i class="fas fa-plus-circle me-2"></i>Створення нового проекту</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'project_create' %}" enctype="multipart/form-data" id="projectForm">
+                        {% csrf_token %}
+
+                        <h4 class="mb-3">Основна інформація</h4>
+
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Назва проекту</label>
+                            {{ project_form.title }}
+                            {% if project_form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ project_form.title.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_category" class="form-label">Категорія</label>
+                            {{ project_form.category }}
+                            {% if project_form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ project_form.category.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_goal_amount" class="form-label">Цільова сума (грн)</label>
+                                {{ project_form.goal_amount }}
+                                {% if project_form.goal_amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ project_form.goal_amount.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_deadline" class="form-label">Дедлайн</label>
+                                {{ project_form.deadline }}
+                                {% if project_form.deadline.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ project_form.deadline.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Опис проекту</label>
+                            {{ project_form.description }}
+                            {% if project_form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ project_form.description.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h4 class="mb-3">Медіа-файли</h4>
+                        <p class="text-muted mb-3">Додайте зображення, відео та документи для вашого проекту</p>
+
+                        <div id="mediaContainer">
+                            <!-- Контейнер для динамічного додавання медіа -->
+                            <div class="media-item border rounded p-3 mb-3">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Тип медіа</label>
+                                        <select name="media_type" class="form-control media-type">
+                                            <option value="image">Зображення</option>
+                                            <option value="video">Відео</option>
+                                            <option value="document">Документ</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label url-field">URL (для зображень або відео)</label>
+                                        <input type="url" name="url" class="form-control url-input" placeholder="https://...">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 file-field">
+                                    <label class="form-label">Файл</label>
+                                    <input type="file" name="file" class="form-control file-input">
+                                    <div class="form-text file-help">
+                                        Для зображень: JPG, PNG, GIF. Для відео: MP4, WebM. Для документів: PDF, DOCX.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <button type="button" id="addMediaBtn" class="btn btn-outline-primary">
+                                <i class="fas fa-plus-circle me-1"></i>Додати ще медіа
+                            </button>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-1"></i>Створити проект
+                            </button>
+                            <a href="{% url 'project_catalog' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Скасувати
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mediaContainer = document.getElementById('mediaContainer');
+        const addMediaBtn = document.getElementById('addMediaBtn');
+
+        // Функція для оновлення видимості полів на основі типу медіа
+        function updateFieldVisibility(mediaItem) {
+            const mediaType = mediaItem.querySelector('.media-type').value;
+            const urlField = mediaItem.querySelector('.url-field');
+            const urlInput = mediaItem.querySelector('.url-input');
+            const fileField = mediaItem.querySelector('.file-field');
+            const fileHelp = mediaItem.querySelector('.file-help');
+
+            if (mediaType === 'document') {
+                urlField.style.display = 'none';
+                urlInput.style.display = 'none';
+                fileField.style.display = 'block';
+                fileHelp.textContent = 'Підтримувані формати: PDF, DOCX, TXT, XLS, ZIP.';
+            } else if (mediaType === 'video') {
+                urlField.style.display = 'block';
+                urlInput.style.display = 'block';
+                fileField.style.display = 'block';
+                fileHelp.textContent = 'Підтримувані формати відео: MP4, WebM, AVI. Максимальний розмір: 100MB.';
+            } else if (mediaType === 'image') {
+                urlField.style.display = 'block';
+                urlInput.style.display = 'block';
+                fileField.style.display = 'block';
+                fileHelp.textContent = 'Підтримувані формати зображень: JPG, PNG, GIF. Рекомендований розмір: 1200x675px.';
+            }
+        }
+
+        // Обробник для додавання нового медіа
+        addMediaBtn.addEventListener('click', function() {
+            const mediaItemTemplate = mediaContainer.firstElementChild.cloneNode(true);
+
+            // Очищаємо значення полів
+            mediaItemTemplate.querySelector('.media-type').value = 'image';
+            mediaItemTemplate.querySelector('.url-input').value = '';
+            mediaItemTemplate.querySelector('.file-input').value = '';
+
+            // Додаємо кнопку видалення
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                mediaContainer.removeChild(mediaItemTemplate);
+            });
+
+            mediaItemTemplate.style.position = 'relative';
+            mediaItemTemplate.appendChild(removeBtn);
+
+            // Додаємо обробник зміни типу медіа
+            mediaItemTemplate.querySelector('.media-type').addEventListener('change', function() {
+                updateFieldVisibility(mediaItemTemplate);
+            });
+
+            // Додаємо новий елемент у контейнер
+            mediaContainer.appendChild(mediaItemTemplate);
+
+            // Оновлюємо видимість полів для нового елемента
+            updateFieldVisibility(mediaItemTemplate);
+        });
+
+        // Налаштовуємо початкові елементи
+        document.querySelectorAll('.media-item').forEach(function(mediaItem) {
+            mediaItem.querySelector('.media-type').addEventListener('change', function() {
+                updateFieldVisibility(mediaItem);
+            });
+
+            // Оновлюємо початкову видимість полів
+            updateFieldVisibility(mediaItem);
+        });
+    });
+</script>
+{% endblock %}

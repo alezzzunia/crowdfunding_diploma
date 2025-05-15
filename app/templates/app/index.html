@@ -1,0 +1,309 @@
+﻿{% extends "app/layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Герой-секція з паралакс-ефектом -->
+<div class="parallax-hero d-flex align-items-center mb-5" style="
+    background-image: url('{% static 'app/content/hero-background.jpg' %}');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 400px;
+    position: relative;
+">
+    <!-- Напівпрозорий шар для кращої читабельності тексту -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4);"></div>
+
+    <div class="container position-relative">
+        <!-- position-relative для підняття над темним шаром -->
+        <div class="row">
+            <div class="col-md-8 col-lg-6">
+                <div class="text-white p-5" style="background-color: rgba(0, 0, 0, 0.5); border-radius: 15px;">
+                    <h1 class="display-4 fw-bold mb-4">Підтримайте українські проекти</h1>
+                    <p class="lead mb-4">Інноваційна краудфандингова платформа для творчих та бізнес ідей</p>
+                    <div class="d-flex flex-wrap gap-3 mt-4">
+                        <a href="{% url 'project_catalog' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-search me-2"></i>Переглянути проекти
+                        </a>
+                        {% if user.is_authenticated and user.is_author %}
+                        <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>Створити проект
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold"><i class="fas fa-fire me-2"></i>Популярні проекти</h2>
+        <p class="lead text-muted">Проекти, які привертають найбільше уваги спільноти</p>
+    </div>
+
+    <!-- Початок секції проектів -->
+    {% if latest_projects %}
+    <div class="row">
+        {% for project in latest_projects %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div style="overflow: hidden; height: 200px;">
+                    {% if project.media.filter.first %}
+                        {% if project.media.filter.first.url %}
+                        <img src="{{ project.media.filter.first.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 100%; object-fit: cover;">
+                        {% elif project.media.filter.first.file %}
+                        <img src="{{ project.media.filter.first.file.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 100%; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 100%;">
+                            <i class="fas fa-image fa-3x text-secondary"></i>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 100%;">
+                        <i class="fas fa-image fa-3x text-secondary"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge {% if project.status == 'active' %}bg-success{% elif project.status == 'completed' %}bg-primary{% else %}bg-secondary{% endif %}">
+                            {{ project.get_status_display }}
+                        </span>
+                        <span class="badge bg-light text-dark">{{ project.category }}</span>
+                    </div>
+                    <h5 class="card-title">{{ project.title }}</h5>
+                    <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ project.progress_percentage }}%;"
+                             aria-valuenow="{{ project.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ project.progress_percentage }}%
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <strong>{{ project.current_amount }} грн</strong>
+                            <div class="text-muted small">зібрано</div>
+                        </div>
+                        <div class="text-end">
+                            <strong>{{ project.goal_amount }} грн</strong>
+                            <div class="text-muted small">ціль</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <div class="d-grid">
+                        <a href="{% url 'project_detail' project_id=project.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-info-circle me-2"></i>Детальніше
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Відображати, коли проектів немає -->
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Наразі немає активних проектів.
+    </div>
+
+    <!-- Показ прикладу проекту -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div style="overflow: hidden; height: 200px;">
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 100%;">
+                        <i class="fas fa-image fa-3x text-secondary"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-secondary">Приклад</span>
+                        <span class="badge bg-light text-dark">Технології</span>
+                    </div>
+                    <h5 class="card-title">Приклад проекту</h5>
+                    <p class="card-text text-muted">Це приклад того, як виглядає картка проекту. Створіть новий проект, щоб побачити його тут!</p>
+
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 45%;"
+                             aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
+                            45%
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <strong>45000 грн</strong>
+                            <div class="text-muted small">зібрано</div>
+                        </div>
+                        <div class="text-end">
+                            <strong>100000 грн</strong>
+                            <div class="text-muted small">ціль</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-primary" disabled>
+                            <i class="fas fa-info-circle me-2"></i>Це приклад
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="text-center mt-4 mb-5">
+        <a href="{% url 'project_catalog' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-arrow-right me-2"></i>Всі проекти
+        </a>
+    </div>
+
+    <!-- Секція переваг з картками, що реагують на наведення -->
+    <div class="row bg-light p-4 rounded mb-5">
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="p-4 h-100" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-lightbulb fa-3x mb-3 text-warning"></i>
+                <h4>Інновації</h4>
+                <p>Підтримуйте інноваційні ідеї та стартапи, які змінюють майбутнє.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="p-4 h-100" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-hands-helping fa-3x mb-3 text-primary"></i>
+                <h4>Спільнота</h4>
+                <p>Приєднуйтесь до спільноти людей, які вірять у силу колективної підтримки.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="p-4 h-100" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <i class="fas fa-rocket fa-3x mb-3 text-danger"></i>
+                <h4>Успіх</h4>
+                <p>Допоможіть проектам досягти успіху та втілити їхні мрії в реальність.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика з анімованими числами -->
+    <div class="py-5 mb-5 text-center" style="background-color: #f8f9fa; border-radius: 10px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div class="counter-item">
+                        <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                        <h2 class="counter-number" data-count="1500">0</h2>
+                        <p class="lead">Активних користувачів</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div class="counter-item">
+                        <i class="fas fa-project-diagram fa-3x mb-3 text-success"></i>
+                        <h2 class="counter-number" data-count="250">0</h2>
+                        <p class="lead">Успішних проектів</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="counter-item">
+                        <i class="fas fa-hryvnia fa-3x mb-3 text-danger"></i>
+                        <h2 class="counter-number" data-count="5000000">0</h2>
+                        <p class="lead">Грн зібрано</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // JavaScript для паралакс-ефекту та анімацій
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("DOM завантажено успішно");
+
+        // Паралакс-ефект
+        window.addEventListener('scroll', function () {
+            const parallaxHero = document.querySelector('.parallax-hero');
+            if (parallaxHero) {
+                const scrolled = window.pageYOffset;
+                const speed = 0.5;
+
+                // Обережне застосування паралакс-ефекту
+                try {
+                    parallaxHero.style.backgroundPositionY = -(scrolled * speed) + 'px';
+                } catch (e) {
+                    console.error("Помилка застосування паралакс-ефекту:", e);
+                }
+            }
+        });
+
+        // Анімуємо прогрес-бари
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(function (progressBar) {
+            const value = progressBar.getAttribute('aria-valuenow');
+            progressBar.style.width = '0%';
+
+            setTimeout(function () {
+                progressBar.style.width = value + '%';
+                progressBar.style.transition = 'width 1s ease';
+            }, 300);
+        });
+
+        // Анімація для лічильників
+        const counters = document.querySelectorAll('.counter-number');
+        const windowHeight = window.innerHeight;
+
+        function handleCounters() {
+            counters.forEach(counter => {
+                if (counter.getBoundingClientRect().top < windowHeight - 100) {
+                    if (!counter.classList.contains('counted')) {
+                        counter.classList.add('counted');
+
+                        const target = parseInt(counter.getAttribute('data-count'));
+                        const duration = 2000; // 2 seconds
+                        const increment = target / (duration / 16); // 60 FPS
+                        let currentCount = 0;
+
+                        function updateCount() {
+                            currentCount += increment;
+                            if (currentCount >= target) {
+                                counter.textContent = new Intl.NumberFormat('uk-UA').format(target);
+                                return;
+                            }
+
+                            counter.textContent = new Intl.NumberFormat('uk-UA').format(Math.floor(currentCount));
+                            requestAnimationFrame(updateCount);
+                        }
+
+                        updateCount();
+                    }
+                }
+            });
+        }
+
+        // Перевіряємо при завантаженні
+        handleCounters();
+
+        // І при прокрутці
+        window.addEventListener('scroll', handleCounters);
+
+        // Анімація при наведенні на картки переваг
+        const advantageCards = document.querySelectorAll('.col-md-4 .p-4');
+        advantageCards.forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                this.style.transform = 'translateY(-10px)';
+            });
+
+            card.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}
