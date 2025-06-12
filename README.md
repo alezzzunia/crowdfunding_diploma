@@ -74,7 +74,7 @@
 ### 2. Клонування репозиторію
 
 ```bash
-git clone https://github.com/alezzzunia/crowdfunding.git
+git clone https://github.com/alezzzunia/crowdfunding_diploma.git
 cd crowdfunding
 ```
 
